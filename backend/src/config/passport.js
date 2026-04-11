@@ -1,6 +1,7 @@
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const User = require("../models/User");
+const { isAdminEmail } = require("../utils/adminEmails");
 
 passport.use(
   new GoogleStrategy(
@@ -14,14 +15,20 @@ passport.use(
         const existingUser = await User.findOne({ email: profile.emails[0].value });
 
         if (existingUser) {
+          if (isAdminEmail(existingUser.email) && existingUser.role !== "admin") {
+            existingUser.role = "admin";
+            await existingUser.save();
+          }
           return done(null, existingUser);
         }
 
+        const email = profile.emails[0].value;
         const newUser = await User.create({
           googleId: profile.id,
           fullName: profile.displayName,
-          email: profile.emails[0].value,
+          email,
           profilePicture: profile.photos?.[0]?.value || "",
+          role: isAdminEmail(email) ? "admin" : "user",
         });
 
         return done(null, newUser);
@@ -39,6 +46,10 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser(async (id, done) => {
   try {
     const user = await User.findById(id);
+    if (user && isAdminEmail(user.email) && user.role !== "admin") {
+      user.role = "admin";
+      await user.save();
+    }
     done(null, user);
   } catch (error) {
     done(error, null);

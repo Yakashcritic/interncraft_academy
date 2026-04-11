@@ -44,6 +44,15 @@ const userSchema = new mongoose.Schema(
       enum: ["unpaid", "pending", "paid", "failed"],
       default: "unpaid",
     },
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
+    enrolledCourseId: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true }
 );

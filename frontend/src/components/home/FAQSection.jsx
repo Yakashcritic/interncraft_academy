@@ -13,19 +13,23 @@ export default function FAQSection() {
       answer: "Yes, students will receive a certificate after successful completion.",
     },
     {
+      question: "Will I get project review support?",
+      answer: "Yes, mentors review projects in checkpoints and suggest improvements for quality and presentation.",
+    },
+    {
       question: "How will classes be shared?",
       answer: "Google Meet links and recorded resources will be shared through official communication channels like WhatsApp.",
     },
   ];
 
   return (
-    <section className="bg-slate-50 py-16">
+    <section className="py-16">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-10 text-center">
-          <h2 className="text-3xl font-bold text-slate-900">
+        <div className="fade-up mb-10 text-center">
+          <h2 className="text-3xl font-bold text-white">
             Frequently Asked Questions
           </h2>
-          <p className="mt-3 text-slate-600">
+          <p className="mt-3 text-slate-300">
             Clear answers to common student questions.
           </p>
         </div>
@@ -34,12 +38,12 @@ export default function FAQSection() {
           {faqs.map((faq) => (
             <div
               key={faq.question}
-              className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md"
+              className="surface-card premium-transition p-6 hover:-translate-y-1"
             >
-              <h3 className="text-lg font-semibold text-slate-900">
+              <h3 className="text-lg font-semibold text-white">
                 {faq.question}
               </h3>
-              <p className="mt-2 leading-7 text-slate-600">{faq.answer}</p>
+              <p className="mt-2 leading-7 text-slate-300">{faq.answer}</p>
             </div>
           ))}
         </div>

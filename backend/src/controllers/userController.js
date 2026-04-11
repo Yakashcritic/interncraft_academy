@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const { getCourseForUser } = require("../config/courses");
 
 const getProfile = async (req, res) => {
   try {
@@ -61,7 +62,44 @@ const completeProfile = async (req, res) => {
   }
 };
 
+const getEnrollment = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select(
+      "fullName email phone collegeName courseDegree year profilePicture paymentStatus enrolledCourseId profileCompleted createdAt"
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (user.paymentStatus !== "paid") {
+      return res.status(403).json({
+        success: false,
+        message: "Complete payment to open your student dashboard.",
+      });
+    }
+
+    const course = getCourseForUser(user.enrolledCourseId);
+
+    res.json({
+      success: true,
+      user,
+      course,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to load enrollment",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getProfile,
   completeProfile,
+  getEnrollment,
 };

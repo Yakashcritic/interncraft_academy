@@ -10,7 +10,9 @@ export default function AuthSuccessPage() {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/auth/me", {
+        const apiUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+        const res = await fetch(`${apiUrl}/auth/me`, {
           credentials: "include",
         });
 
@@ -21,13 +23,31 @@ export default function AuthSuccessPage() {
           return;
         }
 
+        let storedRedirect = null;
+        try {
+          storedRedirect = sessionStorage.getItem("postLoginRedirect");
+          if (storedRedirect) sessionStorage.removeItem("postLoginRedirect");
+        } catch {
+          /* ignore */
+        }
+
+        if (storedRedirect && storedRedirect.startsWith("/")) {
+          router.push(storedRedirect);
+          return;
+        }
+
+        if (data.user.role === "admin") {
+          router.push("/admin/coupons");
+          return;
+        }
+
         if (!data.user.profileCompleted) {
           router.push("/complete-profile");
           return;
         }
 
         if (data.user.paymentStatus === "paid") {
-          router.push("/thank-you");
+          router.push("/dashboard");
           return;
         }
 

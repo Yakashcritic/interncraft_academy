@@ -31,6 +31,10 @@ const paymentSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    courseId: {
+      type: String,
+      default: "",
+    },
     paymentStatus: {
       type: String,
       enum: ["pending", "success", "failed"],

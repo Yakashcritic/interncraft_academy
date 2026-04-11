@@ -1,13 +1,150 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  background: #ffffff;
+  min-height: 100vh;
+  background:
+    radial-gradient(900px 420px at 10% -10%, rgba(56, 189, 248, 0.18), transparent 68%),
+    radial-gradient(820px 420px at 95% 0%, rgba(99, 102, 241, 0.14), transparent 72%),
+    linear-gradient(180deg, #030712 0%, #0b1120 35%, #111827 100%);
+  color: #e2e8f0;
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+}
+
+::selection {
+  background: rgba(59, 130, 246, 0.2);
   color: #0f172a;
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer utilities {
+  .surface-card {
+    border-radius: 1.5rem;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    background: linear-gradient(
+      135deg,
+      rgba(30, 41, 59, 0.68) 0%,
+      rgba(15, 23, 42, 0.75) 100%
+    );
+    box-shadow: 0 28px 60px -35px rgba(2, 6, 23, 0.95);
+    backdrop-filter: blur(12px);
+  }
+
+  .premium-border {
+    border: 1px solid rgba(148, 163, 184, 0.25);
+  }
+
+  .premium-transition {
+    transition: all 300ms ease-out;
+  }
+
+  .fade-up {
+    animation: fadeUp 0.7s ease-out both;
+  }
+
+  .fade-up-soft {
+    animation: fadeUpSoft 0.9s ease-out both;
+  }
+
+  .float-soft {
+    animation: floatSoft 6s ease-in-out infinite;
+  }
+
+  .hover-glow:hover {
+    box-shadow: 0 30px 60px -38px rgba(59, 130, 246, 0.65);
+  }
+
+  .gradient-text {
+    background: linear-gradient(90deg, #f8fafc 0%, #93c5fd 45%, #22d3ee 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .text-dim {
+    color: #94a3b8;
+  }
+
+  .grid-scan {
+    background-image:
+      linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
+    background-size: 46px 46px;
+    mask-image: radial-gradient(circle at center, black 40%, transparent 92%);
+    animation: gridShift 18s linear infinite;
+  }
+
+  .scan-beam {
+    animation: scanBeam 8s ease-in-out infinite;
+    filter: blur(42px);
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeUpSoft {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes gridShift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(46px, 46px, 0);
+  }
+}
+
+@keyframes scanBeam {
+  0%,
+  100% {
+    transform: translateX(-40%);
+    opacity: 0.2;
+  }
+  50% {
+    transform: translateX(140%);
+    opacity: 0.65;
+  }
+}
+
+@keyframes floatSoft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

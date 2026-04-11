@@ -6,7 +6,7 @@ export default function PrimaryButton({
   return (
     <a
       href={href}
-      className={`inline-block rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 ${className}`}
+      className={`premium-transition inline-block rounded-full bg-gradient-to-r from-slate-900 to-blue-900 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 hover:-translate-y-0.5 ${className}`}
     >
       {children}
     </a>

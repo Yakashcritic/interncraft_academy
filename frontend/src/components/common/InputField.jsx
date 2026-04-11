@@ -20,7 +20,7 @@ export default function InputField({
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-900"
+        className="premium-transition w-full rounded-xl border border-slate-300/80 bg-white/90 px-4 py-3 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
       />
     </div>
   );

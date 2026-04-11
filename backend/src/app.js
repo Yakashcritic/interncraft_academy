@@ -8,6 +8,8 @@ const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const couponRoutes = require("./routes/couponRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const coursesRoutes = require("./routes/coursesRoutes");
 
 const app = express();
 
@@ -43,8 +45,10 @@ app.get("/", (req, res) => {
 
 app.use("/api/test", testRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/courses", coursesRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/admin", adminRoutes);
 
 module.exports = app;

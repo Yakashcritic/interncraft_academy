@@ -1,7 +1,9 @@
 const Payment = require("../models/Payment");
 const User = require("../models/User");
 const Coupon = require("../models/Coupon");
-const Cashfree = require("../config/cashfree");
+const { isValidCourseId } = require("../config/courses");
+const CashfreeClass = require("../config/cashfree");
+const Cashfree = new CashfreeClass();
 
 const PROGRAM_PRICE = 999;
 
@@ -44,7 +46,7 @@ const calculatePricing = async (couponCode) => {
 
 const createOrder = async (req, res) => {
   try {
-    const { couponCode } = req.body;
+    const { couponCode, courseId } = req.body;
 
     const user = await User.findById(req.user._id);
 
@@ -52,6 +54,13 @@ const createOrder = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "User not found",
+      });
+    }
+
+    if (!courseId || !isValidCourseId(courseId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Choose one of the six program tracks before paying.",
       });
     }
 
@@ -71,7 +80,7 @@ const createOrder = async (req, res) => {
         customer_phone: user.phone || "9999999999",
       },
       order_meta: {
-        return_url: `${process.env.FRONTEND_URL}/thank-you?order_id={order_id}`,
+        return_url: `${process.env.FRONTEND_URL}/dashboard?order_id={order_id}`,
       },
     };
 
@@ -85,14 +94,19 @@ const createOrder = async (req, res) => {
       finalAmount,
       discountAmount,
       couponCode: appliedCoupon ? appliedCoupon.code : "",
+      courseId,
       paymentStatus: "pending",
     });
+
+    const cashfreeMode =
+      process.env.CASHFREE_ENV === "PRODUCTION" ? "production" : "sandbox";
 
     res.json({
       success: true,
       message: "Payment order created successfully",
       paymentSessionId: cashfreeResponse.data.payment_session_id,
       orderId,
+      cashfreeMode,
     });
   } catch (error) {
     console.error("Create Order Error:", error.response?.data || error.message);
@@ -129,6 +143,7 @@ const verifyPayment = async (req, res) => {
 
         await User.findByIdAndUpdate(payment.userId, {
           paymentStatus: "paid",
+          enrolledCourseId: payment.courseId || "",
         });
 
         if (payment.couponCode) {
@@ -232,6 +247,7 @@ const cashfreeWebhook = async (req, res) => {
 
       await User.findByIdAndUpdate(payment.userId, {
         paymentStatus: "paid",
+        enrolledCourseId: payment.courseId || "",
       });
 
       if (payment.couponCode) {

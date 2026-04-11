@@ -2,19 +2,19 @@ import Container from "@/components/common/Container";
 
 export default function StatsSection() {
   const stats = [
-    { label: "Learning Mode", value: "Live + Recorded" },
-    { label: "Support", value: "WhatsApp Community" },
-    { label: "Outcome", value: "Skills + Certificate" },
+    { label: "Batch Completion", value: "92% Program Completion" },
+    { label: "Mentor Reply Time", value: "Within 30 Minutes" },
+    { label: "Career Support", value: "Weekly Resume Reviews" },
   ];
 
   return (
     <section className="py-8">
       <Container>
-        <div className="grid gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:grid-cols-3">
+        <div className="surface-card grid gap-4 p-6 md:grid-cols-3">
           {stats.map((stat) => (
-            <div key={stat.label} className="text-center">
-              <p className="text-sm text-slate-500">{stat.label}</p>
-              <p className="mt-2 text-lg font-semibold text-slate-900">
+            <div key={stat.label} className="premium-transition rounded-2xl p-4 text-center hover:bg-slate-900/35">
+              <p className="text-sm font-medium text-slate-400">{stat.label}</p>
+              <p className="mt-2 text-lg font-semibold text-white">
                 {stat.value}
               </p>
             </div>

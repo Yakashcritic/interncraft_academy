@@ -1,4 +1,12 @@
 import "./globals.css";
+import { Inter } from "next/font/google";
+import Script from "next/script";
+import Providers from "@/components/providers/Providers";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export const metadata = {
   title: "InternCraft Academy | Premium Student Internship Program",
@@ -19,8 +27,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
-      <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+      <body className={inter.className}>
+        <Providers>{children}</Providers>
+        <Script src="https://sdk.cashfree.com/js/v3/cashfree.js" strategy="beforeInteractive" />
+      </body>
     </html>
   );
 }
