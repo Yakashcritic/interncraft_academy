@@ -1,11 +1,17 @@
 import "./globals.css";
-import { Inter } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import Script from "next/script";
 import Providers from "@/components/providers/Providers";
 
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
+});
+
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-display",
 });
 
 export const metadata = {
@@ -26,8 +32,10 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" className="scroll-smooth">
+      <body
+        className={`${inter.className} ${plusJakarta.variable} antialiased`}
+      >
         <Providers>{children}</Providers>
         <Script src="https://sdk.cashfree.com/js/v3/cashfree.js" strategy="beforeInteractive" />
       </body>

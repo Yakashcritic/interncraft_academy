@@ -1,6 +1,6 @@
 export async function getCurrentUser() {
   try {
-    const res = await fetch("http://localhost:5000/api/auth/me", {
+    const res = await fetch("https://learnmythos.app/api/auth/me", {
       credentials: "include",
     });
 
@@ -13,7 +13,7 @@ export async function getCurrentUser() {
 
 export async function getPaymentStatus() {
   try {
-    const res = await fetch("http://localhost:5000/api/payments/status", {
+    const res = await fetch("https://learnmythos.app/api/payments/status", {
       credentials: "include",
     });
 

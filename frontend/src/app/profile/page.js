@@ -5,7 +5,7 @@ import Link from "next/link";
 import { LayoutDashboard, TicketPercent, Users } from "lucide-react";
 
 const apiBase =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+  process.env.NEXT_PUBLIC_API_URL || "https://learnmythos.app/api";
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null);

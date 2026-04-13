@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import PageWrapper from "@/components/common/PageWrapper";
 import Loader from "@/components/common/Loader";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://learnmythos.app/api";
 
 export default function ThankYouPage() {
   const router = useRouter();

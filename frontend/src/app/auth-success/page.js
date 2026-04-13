@@ -11,7 +11,7 @@ export default function AuthSuccessPage() {
     const checkUser = async () => {
       try {
         const apiUrl =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+          process.env.NEXT_PUBLIC_API_URL || "https://learnmythos.app/api";
         const res = await fetch(`${apiUrl}/auth/me`, {
           credentials: "include",
         });

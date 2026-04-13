@@ -26,7 +26,7 @@ export default function CompleteProfilePage() {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/users/profile", {
+        const res = await fetch("https://learnmythos.app/api/users/profile", {
           credentials: "include",
         });
 
@@ -73,7 +73,7 @@ export default function CompleteProfilePage() {
     setMessage("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/users/complete-profile", {
+      const res = await fetch("https://learnmythos.app/api/users/complete-profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

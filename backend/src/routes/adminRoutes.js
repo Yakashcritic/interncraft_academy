@@ -110,4 +110,28 @@ router.delete("/coupons/:id", async (req, res) => {
   }
 });
 
+/**
+ * @route   DELETE /api/admin/users/:id
+ * @desc    Delete a user and their payments
+ */
+router.delete("/users/:id", async (req, res) => {
+  try {
+    const User = require("../models/User");
+    const Payment = require("../models/Payment");
+    
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    // Delete user's payments
+    await Payment.deleteMany({ userId: user._id });
+    
+    // Delete user
+    await user.deleteOne();
+    
+    res.json({ success: true, message: "User deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 module.exports = router;

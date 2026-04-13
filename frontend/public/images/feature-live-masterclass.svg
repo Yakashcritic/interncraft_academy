@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" fill="none">
+  <defs>
+    <linearGradient id="h" x1="0" y1="0" x2="1200" y2="800" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#020617"/>
+      <stop offset="0.45" stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <radialGradient id="spot" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(720 280) rotate(90) scale(420 520)">
+      <stop stop-color="#1d4ed8" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#020617" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="screen" x1="400" y1="200" x2="900" y2="520">
+      <stop stop-color="#1e293b"/>
+      <stop offset="1" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#h)"/>
+  <rect width="1200" height="800" fill="url(#spot)"/>
+  <rect x="380" y="160" width="520" height="360" rx="16" fill="url(#screen)" stroke="#334155" stroke-width="2"/>
+  <rect x="420" y="200" width="440" height="240" rx="8" fill="#020617" stroke="#1e293b"/>
+  <circle cx="640" cy="320" r="36" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+  <path d="M625 315 L638 328 L658 300" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <rect x="460" y="460" width="320" height="10" rx="4" fill="#334155"/>
+  <rect x="500" y="484" width="240" height="10" rx="4" fill="#1e293b"/>
+  <rect x="280" y="420" width="120" height="72" rx="10" fill="#1e293b" stroke="#475569"/>
+  <rect x="800" y="400" width="120" height="88" rx="10" fill="#1e293b" stroke="#475569"/>
+  <circle cx="340" cy="448" r="14" fill="#334155"/>
+  <circle cx="860" cy="436" r="14" fill="#334155"/>
+  <text x="640" y="130" text-anchor="middle" fill="#64748b" font-family="system-ui,sans-serif" font-size="14" letter-spacing="0.35em">LIVE SESSION</text>
+</svg>

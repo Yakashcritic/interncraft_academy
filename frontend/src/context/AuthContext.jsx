@@ -10,7 +10,7 @@ import {
 } from "react";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+  process.env.NEXT_PUBLIC_API_URL || "https://learnmythos.app/api";
 
 const AuthContext = createContext(undefined);
 

@@ -2,8 +2,7 @@ const Payment = require("../models/Payment");
 const User = require("../models/User");
 const Coupon = require("../models/Coupon");
 const { isValidCourseId } = require("../config/courses");
-const CashfreeClass = require("../config/cashfree");
-const Cashfree = new CashfreeClass();
+const Cashfree = require("../config/cashfree");
 
 const PROGRAM_PRICE = 999;
 

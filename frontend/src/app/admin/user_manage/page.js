@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { adminService } from "@/lib/adminService";
-import { Search, ChevronLeft, ChevronRight, Save } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Save, Trash2, MessageCircle } from "lucide-react";
 
 const PAGE_SIZE = 15;
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://learnmythos.app/api";
 
 export default function UserManagePage() {
   const [courseLabels, setCourseLabels] = useState({});
@@ -133,6 +133,34 @@ export default function UserManagePage() {
           error.message ||
           "Failed to update user"
       );
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const handleDelete = async (user) => {
+    if (!confirm(`Are you sure you want to delete user "${user.fullName}" (${user.email})?\n\nThis will permanently remove the user and all their payment records.`)) {
+      return;
+    }
+    setSavingId(user._id);
+    try {
+      const res = await fetch(`${apiUrl}/admin/users/${user._id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUsers((prev) => prev.filter((u) => u._id !== user._id));
+        setDrafts((prev) => {
+          const { [user._id]: _, ...rest } = prev;
+          return rest;
+        });
+        setTotal((prev) => prev - 1);
+      } else {
+        alert(data.message || "Failed to delete user");
+      }
+    } catch (error) {
+      alert(error.message || "Failed to delete user");
     } finally {
       setSavingId(null);
     }
@@ -339,17 +367,42 @@ export default function UserManagePage() {
                         </label>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <button
-                          type="button"
-                          disabled={
-                            !hasChanges(user) || savingId === user._id
-                          }
-                          onClick={() => handleSave(user)}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-green-600/90 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-500 disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                          <Save className="h-3.5 w-3.5" />
-                          {savingId === user._id ? "Saving…" : "Save"}
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            disabled={
+                              !hasChanges(user) || savingId === user._id
+                            }
+                            onClick={() => handleSave(user)}
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-green-600/90 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-500 disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            <Save className="h-3.5 w-3.5" />
+                            {savingId === user._id ? "Saving…" : "Save"}
+                          </button>
+                          <button
+                            type="button"
+                            disabled={savingId === user._id || !user.phone}
+                            onClick={() => {
+                              const phone = user.phone.replace(/\D/g, '');
+                              const msg = encodeURIComponent(`Hi ${user.fullName}, your payment is confirmed! Here is your WhatsApp group link: [ADD_LINK_HERE]`);
+                              window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+                            }}
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-green-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-400 disabled:cursor-not-allowed disabled:opacity-40"
+                            title={user.phone ? `Send WhatsApp to ${user.phone}` : 'No phone number'}
+                          >
+                            <MessageCircle className="h-3.5 w-3.5" />
+                            WhatsApp
+                          </button>
+                          <button
+                            type="button"
+                            disabled={savingId === user._id}
+                            onClick={() => handleDelete(user)}
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-red-600/90 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

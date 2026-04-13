@@ -1,5 +1,5 @@
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+  process.env.NEXT_PUBLIC_API_URL || "https://learnmythos.app/api";
 
 async function adminRequest(path, options = {}) {
   const res = await fetch(`${API_BASE_URL}${path}`, {
