@@ -1,14 +1,26 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import PageWrapper from "@/components/common/PageWrapper";
 import { Shield } from "lucide-react";
 
 const POST_LOGIN_REDIRECT_KEY = "postLoginRedirect";
+const REFERRAL_STORAGE_KEY = "learnmythos_referral_code";
 
 export default function LoginContent() {
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (!ref) return;
+    try {
+      localStorage.setItem(REFERRAL_STORAGE_KEY, ref.toUpperCase().trim());
+    } catch {
+      /* ignore */
+    }
+  }, [searchParams]);
 
   const handleGoogleLogin = () => {
     const redirect = searchParams.get("redirect");

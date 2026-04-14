@@ -2,23 +2,19 @@ export default function FAQSection() {
   const faqs = [
     {
       question: "Is this program beginner friendly?",
-      answer: "Yes, the internship is designed in a simple and structured way for students who are just getting started.",
+      answer: "Yes, all programs are designed for beginners.",
     },
     {
-      question: "Will I get recorded sessions?",
-      answer: "Yes, both live and recorded learning access are included in the program.",
+      question: "Will I get a certificate?",
+      answer: "Yes, you will receive an internship certificate after completion.",
     },
     {
-      question: "Will I receive a certificate?",
-      answer: "Yes, students will receive a certificate after successful completion.",
+      question: "How long is the program?",
+      answer: "Typically 30 days depending on the course.",
     },
     {
-      question: "Will I get project review support?",
-      answer: "Yes, mentors review projects in checkpoints and suggest improvements for quality and presentation.",
-    },
-    {
-      question: "How will classes be shared?",
-      answer: "Google Meet links and recorded resources will be shared through official communication channels like WhatsApp.",
+      question: "Do I need prior experience?",
+      answer: "No prior experience required.",
     },
   ];
 
@@ -26,9 +22,7 @@ export default function FAQSection() {
     <section className="py-16">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <div className="fade-up mb-10 text-center">
-          <h2 className="text-3xl font-bold text-white">
-            Frequently Asked Questions
-          </h2>
+          <h2 className="text-3xl font-bold text-white">Frequently Asked Questions</h2>
           <p className="mt-3 text-slate-300">
             Clear answers to common student questions.
           </p>

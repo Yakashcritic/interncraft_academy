@@ -2,7 +2,7 @@
 
 import { PROGRAM_DETAILS } from "@/lib/constants";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, Sparkles, X } from "lucide-react";
+import { Menu, Sparkles, X, User } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
@@ -13,14 +13,35 @@ const links = [
   { label: "Pricing", href: "#pricing" },
 ];
 
+const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://learnmythos.app/api";
+
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 16);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const res = await fetch(`${apiBase}/auth/me`, {
+          credentials: "include",
+        });
+        const data = await res.json();
+        if (data.success) {
+          setUser(data.user);
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+
+    getUser();
   }, []);
 
   useEffect(() => {
@@ -73,13 +94,24 @@ export default function Navbar() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <Link
-              href="/login"
-              className="group relative hidden overflow-hidden rounded-full bg-gradient-to-r from-sky-500 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-900/30 transition-transform duration-300 hover:scale-[1.03] sm:inline-flex sm:items-center sm:justify-center"
-            >
-              <span className="absolute inset-0 translate-y-full bg-white/15 transition-transform duration-300 group-hover:translate-y-0" />
-              <span className="relative">Enroll Now</span>
-            </Link>
+            {user ? (
+              <Link
+                href="/profile"
+                className="group relative hidden overflow-hidden rounded-full bg-gradient-to-r from-sky-500 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-900/30 transition-transform duration-300 hover:scale-[1.03] sm:inline-flex sm:items-center sm:justify-center gap-2"
+              >
+                <span className="absolute inset-0 translate-y-full bg-white/15 transition-transform duration-300 group-hover:translate-y-0" />
+                <User className="h-4 w-4 relative" />
+                <span className="relative">Profile</span>
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="group relative hidden overflow-hidden rounded-full bg-gradient-to-r from-sky-500 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-900/30 transition-transform duration-300 hover:scale-[1.03] sm:inline-flex sm:items-center sm:justify-center"
+              >
+                <span className="absolute inset-0 translate-y-full bg-white/15 transition-transform duration-300 group-hover:translate-y-0" />
+                <span className="relative">Enroll Now</span>
+              </Link>
+            )}
 
             <button
               type="button"
@@ -124,13 +156,24 @@ export default function Navbar() {
                   {item.label}
                 </motion.a>
               ))}
-              <Link
-                href="/login"
-                onClick={() => setOpen(false)}
-                className="mt-6 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 py-3.5 text-center text-sm font-semibold text-white"
-              >
-                Enroll Now
-              </Link>
+              {user ? (
+                <Link
+                  href="/profile"
+                  onClick={() => setOpen(false)}
+                  className="mt-6 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 py-3.5 text-center text-sm font-semibold text-white flex items-center justify-center gap-2"
+                >
+                  <User className="h-4 w-4" />
+                  Profile
+                </Link>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setOpen(false)}
+                  className="mt-6 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 py-3.5 text-center text-sm font-semibold text-white"
+                >
+                  Enroll Now
+                </Link>
+              )}
             </motion.nav>
           </motion.div>
         )}

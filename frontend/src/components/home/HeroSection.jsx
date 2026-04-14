@@ -1,11 +1,15 @@
 "use client";
 
-import { HERO_QUICK_STATS, PROGRAM_DETAILS } from "@/lib/constants";
+import { HERO_QUICK_STATS } from "@/lib/constants";
 import { SITE_IMAGES } from "@/lib/siteImages";
 import { motion } from "framer-motion";
 import { ArrowRight, PlayCircle, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+
+const REFERRAL_STORAGE_KEY = "learnmythos_referral_code";
 
 const container = {
   hidden: { opacity: 0 },
@@ -25,6 +29,18 @@ const item = {
 };
 
 export default function HeroSection() {
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const refCode = searchParams.get("ref");
+    if (!refCode) return;
+    try {
+      localStorage.setItem(REFERRAL_STORAGE_KEY, refCode.toUpperCase().trim());
+    } catch {
+      /* ignore */
+    }
+  }, [searchParams]);
+
   return (
     <section className="relative min-h-[92vh] overflow-hidden pt-28 sm:pt-32 lg:pt-40">
       <div className="absolute left-1/2 top-0 -z-10 h-[min(100vw,900px)] w-[min(100vw,900px)] -translate-x-1/2 rounded-full bg-gradient-to-b from-blue-500/25 via-violet-600/12 to-transparent blur-[100px]" />
@@ -47,16 +63,16 @@ export default function HeroSection() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-60" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.9)]" />
               </span>
-              Admissions open · 2026 cohort
+              Admissions Open · 30-Day Internship
             </motion.div>
 
             <motion.h1
               variants={item}
               className="font-display max-w-4xl text-[2.5rem] font-extrabold leading-[1.08] tracking-tight text-white sm:text-6xl md:text-7xl"
             >
-              Master real skills.{" "}
+              Get Real Internship Experience & Become Job-Ready in 30 Days{" "}
               <span className="gradient-text block sm:inline">
-                Build your future.
+                🚀
               </span>
             </motion.h1>
 
@@ -64,7 +80,9 @@ export default function HeroSection() {
               variants={item}
               className="mt-8 max-w-2xl text-base leading-relaxed text-slate-400 sm:text-lg md:text-xl"
             >
-              {PROGRAM_DETAILS.subheadline}
+              Learn in-demand skills with real-world projects, expert guidance,
+              and industry-recognized certification — even if you&apos;re starting
+              from zero.
             </motion.p>
 
             <motion.div
@@ -90,9 +108,7 @@ export default function HeroSection() {
               variants={item}
               className="mt-6 max-w-2xl text-sm text-slate-500"
             >
-              <span className="text-slate-400">{PROGRAM_DETAILS.cohortLabel}</span>
-              {" · "}
-              {PROGRAM_DETAILS.kickoffWindow}
+              ⭐ Trusted by 1000+ Students | Beginner Friendly | Certificate Included
             </motion.p>
 
             <motion.div
@@ -104,7 +120,7 @@ export default function HeroSection() {
                 className="group relative flex items-center justify-center gap-2 overflow-hidden rounded-full bg-white px-8 py-4 text-base font-semibold text-slate-950 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] transition-transform duration-300 hover:scale-[1.03]"
               >
                 <span className="pointer-events-none absolute inset-0 block overflow-hidden rounded-full opacity-0 transition-opacity group-hover:opacity-100 shimmer-sweep" />
-                <span className="relative">Start enrollment</span>
+                <span className="relative">Start Internship Now</span>
                 <ArrowRight className="relative h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
               </Link>
               <a
@@ -112,7 +128,7 @@ export default function HeroSection() {
                 className="group flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-8 py-4 text-base font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:border-white/25 hover:bg-white/[0.08]"
               >
                 <PlayCircle className="h-5 w-5 text-sky-400 transition-transform group-hover:scale-110" />
-                View curriculum
+                Explore Programs
               </a>
             </motion.div>
 
@@ -144,13 +160,13 @@ export default function HeroSection() {
                   className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-slate-950 bg-gradient-to-br from-sky-500 to-blue-700 text-xs font-bold text-white shadow-lg shadow-blue-900/40"
                   style={{ zIndex: 5 }}
                 >
-                  500+
+                  1000+
                 </div>
               </div>
               <p className="max-w-md text-sm leading-relaxed text-slate-500">
-                Learners from 120+ colleges and bootcamps have used InternCraft-style
-                tracks for structured, mentor-led skill depth — from IITs and NITs to
-                regional universities (illustrative reach for demo).
+                Beginner-friendly, project-first internship programs designed to
+                help students build confidence, portfolio proof, and real-world
+                skills.
               </p>
             </motion.div>
           </motion.div>

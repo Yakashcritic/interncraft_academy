@@ -35,6 +35,20 @@ const paymentSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    referrerUserId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    referralCodeApplied: {
+      type: String,
+      default: "",
+    },
+    referralRewardStatus: {
+      type: String,
+      enum: ["none", "pending", "completed"],
+      default: "none",
+    },
     courseId: {
       type: String,
       default: "",

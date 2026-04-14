@@ -12,7 +12,7 @@ export default function CTASection() {
         <div ref={containerRef} className="surface-card rounded-3xl px-6 py-12 text-white">
           <h2 className="text-3xl font-bold">
             <VariableProximity
-              label="Ready To Join The Premium Internship Journey?"
+              label="Start Your Career Journey Today 🚀"
               className="text-white"
               fromFontVariationSettings="'wght' 500, 'opsz' 12"
               toFontVariationSettings="'wght' 980, 'opsz' 36"
@@ -22,8 +22,8 @@ export default function CTASection() {
             />
           </h2>
           <p className="mt-4 text-slate-300">
-            Join InternCraft Academy and build practical skills with expert-led
-            learning, guided projects, and professional support.
+            Don&apos;t wait. Take the first step towards building real skills and
+            real opportunities.
           </p>
           <div className="mx-auto mt-5 flex max-w-xl flex-wrap items-center justify-center gap-2 text-xs text-cyan-200">
             <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1">Live Mentor Rooms</span>
@@ -34,7 +34,7 @@ export default function CTASection() {
             href="/login"
             className="premium-transition mt-8 inline-block rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-700/40 hover:-translate-y-0.5"
           >
-            Enroll Now
+            Join Internship Now
           </a>
 
           <p className="mt-4 text-xs text-slate-400">

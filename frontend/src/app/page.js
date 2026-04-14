@@ -9,6 +9,9 @@ import CategoriesSection from "@/components/home/CategoriesSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
 import MagicBentoSection from "@/components/home/MagicBentoSection";
 import PricingSection from "@/components/home/PricingSection";
+import FAQSection from "@/components/home/FAQSection";
+import CTASection from "@/components/home/CTASection";
+import ConversionSections from "@/components/home/ConversionSections";
 
 export default function HomePage() {
   return (
@@ -33,8 +36,11 @@ export default function HomePage() {
       <ProgramOverview />
       <CategoriesSection />
       <FeaturesSection />
+      <ConversionSections />
       <MagicBentoSection />
       <PricingSection />
+      <FAQSection />
+      <CTASection />
       <Footer />
     </main>
   );

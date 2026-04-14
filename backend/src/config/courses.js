@@ -1,50 +1,73 @@
 /**
- * Six program tracks — edit names/descriptions here.
+ * Internship tracks and pricing.
  * WhatsApp invite links: set matching WHATSAPP_URL_* in backend .env (full URL).
  */
 const COURSE_IDS = [
-  "ai-ml",
-  "digital-marketing",
+  "machine-learning",
+  "dsa",
+  "python",
+  "backend-development",
+  "accounting",
   "video-editing",
-  "business",
-  "fullstack-dev",
-  "data-analytics",
+  "digital-marketing",
 ];
 
 const COURSE_META = {
-  "ai-ml": {
-    name: "AI & Machine Learning",
-    description: "Practical AI tools, prompts, and small projects with mentor support.",
+  "machine-learning": {
+    name: "Machine Learning Basics",
+    description: "Learn how machines think and build intelligent models from scratch.",
+    price: 149,
+    strikePrice: 5999,
+  },
+  dsa: {
+    name: "Data Structures & Algorithms",
+    description:
+      "Master problem-solving and crack technical interviews with confidence.",
+    price: 129,
+    strikePrice: 5499,
+  },
+  python: {
+    name: "Python Programming",
+    description:
+      "Build a strong programming foundation with one of the most in-demand languages.",
+    price: 99,
+    strikePrice: 3999,
+  },
+  "backend-development": {
+    name: "Backend Development",
+    description: "Learn to build powerful server-side applications and APIs.",
+    price: 129,
+    strikePrice: 5499,
+  },
+  accounting: {
+    name: "Accounting",
+    description:
+      "Understand financial systems, tools, and real-world business accounting.",
+    price: 99,
+    strikePrice: 3999,
   },
   "digital-marketing": {
     name: "Digital Marketing",
-    description: "Social media, ads, analytics, and campaign basics for real brands.",
+    description: "Master social media, ads, and strategies to grow any business online.",
+    price: 119,
+    strikePrice: 4999,
   },
   "video-editing": {
     name: "Video Editing",
-    description: "Editing workflow, storytelling, and portfolio-ready cuts.",
-  },
-  business: {
-    name: "Business & Entrepreneurship",
-    description: "Ideas, pitching, operations basics, and internship-ready mindset.",
-  },
-  "fullstack-dev": {
-    name: "Full Stack Web Development",
-    description: "Frontend + backend foundations with hands-on builds.",
-  },
-  "data-analytics": {
-    name: "Data Analytics",
-    description: "Spreadsheets to dashboards — patterns, charts, and insights.",
+    description: "Create professional content using modern editing tools and techniques.",
+    price: 99,
+    strikePrice: 4499,
   },
 };
 
 const WHATSAPP_ENV_KEYS = {
-  "ai-ml": "WHATSAPP_URL_AI_ML",
+  "machine-learning": "WHATSAPP_URL_MACHINE_LEARNING",
+  dsa: "WHATSAPP_URL_DSA",
+  python: "WHATSAPP_URL_PYTHON",
+  "backend-development": "WHATSAPP_URL_BACKEND_DEVELOPMENT",
+  accounting: "WHATSAPP_URL_ACCOUNTING",
   "digital-marketing": "WHATSAPP_URL_DIGITAL_MARKETING",
   "video-editing": "WHATSAPP_URL_VIDEO_EDITING",
-  business: "WHATSAPP_URL_BUSINESS",
-  "fullstack-dev": "WHATSAPP_URL_FULLSTACK_DEV",
-  "data-analytics": "WHATSAPP_URL_DATA_ANALYTICS",
 };
 
 function whatsappUrlFor(courseId) {
@@ -59,6 +82,8 @@ function getPublicCourses() {
     id,
     name: COURSE_META[id].name,
     description: COURSE_META[id].description,
+    price: COURSE_META[id].price,
+    strikePrice: COURSE_META[id].strikePrice,
   }));
 }
 
@@ -73,8 +98,15 @@ function getCourseForUser(courseId) {
     id: courseId,
     name: meta.name,
     description: meta.description,
+    price: meta.price,
+    strikePrice: meta.strikePrice,
     whatsappUrl: whatsappUrlFor(courseId) || null,
   };
+}
+
+function getCoursePrice(courseId) {
+  if (!isValidCourseId(courseId)) return null;
+  return COURSE_META[courseId].price;
 }
 
 module.exports = {
@@ -82,4 +114,5 @@ module.exports = {
   getPublicCourses,
   isValidCourseId,
   getCourseForUser,
+  getCoursePrice,
 };

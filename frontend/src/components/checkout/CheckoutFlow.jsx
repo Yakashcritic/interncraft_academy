@@ -6,6 +6,7 @@ import PageWrapper from "@/components/common/PageWrapper";
 import Loader from "@/components/common/Loader";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://learnmythos.app/api";
+const REFERRAL_STORAGE_KEY = "learnmythos_referral_code";
 
 export default function CheckoutFlow() {
   const router = useRouter();
@@ -15,9 +16,9 @@ export default function CheckoutFlow() {
   const [coupon, setCoupon] = useState("");
   const [message, setMessage] = useState("");
   const [pricing, setPricing] = useState({
-    originalAmount: 999,
+    originalAmount: 0,
     discountAmount: 0,
-    finalAmount: 999,
+    finalAmount: 0,
   });
   const [loading, setLoading] = useState(false);
   const [paying, setPaying] = useState(false);
@@ -29,6 +30,13 @@ export default function CheckoutFlow() {
       const data = await res.json();
       if (data.success && Array.isArray(data.courses)) {
         setCourses(data.courses);
+        if (data.courses[0]) {
+          setPricing({
+            originalAmount: data.courses[0].price,
+            discountAmount: 0,
+            finalAmount: data.courses[0].price,
+          });
+        }
       }
     } catch {
       setMessage("Could not load program tracks. Refresh and try again.");
@@ -69,7 +77,48 @@ export default function CheckoutFlow() {
     checkAccess();
   }, [router, loadCourses]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const refCodeFromUrl = params.get("ref");
+
+    if (refCodeFromUrl) {
+      const normalized = refCodeFromUrl.toUpperCase().trim();
+      setCoupon(normalized);
+      try {
+        localStorage.setItem(REFERRAL_STORAGE_KEY, normalized);
+      } catch {
+        /* ignore */
+      }
+      return;
+    }
+
+    try {
+      const storedRef = localStorage.getItem(REFERRAL_STORAGE_KEY);
+      if (storedRef) {
+        setCoupon(storedRef);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!courseId) return;
+    const selected = courses.find((c) => c.id === courseId);
+    if (!selected) return;
+    setPricing({
+      originalAmount: selected.price,
+      discountAmount: 0,
+      finalAmount: selected.price,
+    });
+  }, [courseId, courses]);
+
   const handleApplyCoupon = async () => {
+    if (!courseId) {
+      setMessage("Please select a program first.");
+      return;
+    }
+
     if (!coupon.trim()) {
       setMessage("Please enter a coupon code");
       return;
@@ -85,7 +134,7 @@ export default function CheckoutFlow() {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({ code: coupon }),
+        body: JSON.stringify({ code: coupon, courseId }),
       });
 
       const data = await res.json();
@@ -105,7 +154,7 @@ export default function CheckoutFlow() {
 
   const handlePayment = async () => {
     if (!courseId) {
-      setMessage("Select one of the six internship tracks to continue.");
+      setMessage("Select your internship track to continue.");
       return;
     }
 
@@ -128,7 +177,18 @@ export default function CheckoutFlow() {
       const data = await res.json();
 
       if (!data.success) {
-        setMessage(data.message || "Failed to create payment");
+        // Show specific error from backend
+        const errorMsg = data.message || data.error || "Failed to create payment order";
+        setMessage(errorMsg);
+        console.error("Payment order creation failed:", data);
+        setPaying(false);
+        return;
+      }
+
+      // Validate response has required fields
+      if (!data.paymentSessionId || !data.orderId) {
+        setMessage("Payment session creation failed. Missing session details.");
+        console.error("Invalid payment response:", data);
         setPaying(false);
         return;
       }
@@ -211,6 +271,11 @@ export default function CheckoutFlow() {
                     onClick={() => {
                       setCourseId(c.id);
                       setMessage("");
+                      setPricing({
+                        originalAmount: c.price,
+                        discountAmount: 0,
+                        finalAmount: c.price,
+                      });
                     }}
                     className={`rounded-2xl border p-4 text-left premium-transition ${
                       selected
@@ -221,6 +286,12 @@ export default function CheckoutFlow() {
                     <p className="font-semibold text-white">{c.name}</p>
                     <p className="mt-1 text-xs leading-relaxed text-slate-400">
                       {c.description}
+                    </p>
+                    <p className="mt-2 text-sm font-semibold text-sky-300">
+                      <span className="mr-2 text-xs text-slate-500 line-through">
+                        ₹{c.strikePrice}
+                      </span>
+                      ₹{c.price}
                     </p>
                   </button>
                 );

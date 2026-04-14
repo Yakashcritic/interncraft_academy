@@ -65,7 +65,7 @@ const completeProfile = async (req, res) => {
 const getEnrollment = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select(
-      "fullName email phone collegeName courseDegree year profilePicture paymentStatus enrolledCourseId profileCompleted createdAt"
+      "fullName email phone collegeName courseDegree year profilePicture paymentStatus enrolledCourseId profileCompleted createdAt referralCode walletBalance totalReferralEarnings totalReferrals"
     );
 
     if (!user) {
@@ -88,6 +88,15 @@ const getEnrollment = async (req, res) => {
       success: true,
       user,
       course,
+      referral: {
+        referralCode: user.referralCode || "",
+        walletBalance: user.walletBalance || 0,
+        totalEarnings: user.totalReferralEarnings || 0,
+        totalReferrals: user.totalReferrals || 0,
+        referralLink: user.referralCode
+          ? `https://learnmythos.app?ref=${user.referralCode}`
+          : "",
+      },
     });
   } catch (error) {
     res.status(500).json({

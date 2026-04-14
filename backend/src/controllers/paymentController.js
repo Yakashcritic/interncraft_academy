@@ -3,15 +3,17 @@ const mongoose = require("mongoose");
 const Payment = require("../models/Payment");
 const User = require("../models/User");
 const Coupon = require("../models/Coupon");
-const { isValidCourseId } = require("../config/courses");
+const Referral = require("../models/Referral");
+const { isValidCourseId, getCoursePrice } = require("../config/courses");
 const Cashfree = require("../config/cashfree");
 
 // Cashfree SDK v5 uses direct static methods, no constructor needed
 
 // Constants
 const CASHFREE_API_VERSION = "2023-08-01";
-const PROGRAM_PRICE = 999;
 const WEBHOOK_SECRET = process.env.CASHFREE_WEBHOOK_SECRET;
+const REFERRAL_DISCOUNT_PERCENT = 20;
+const REFERRAL_REWARD_AMOUNT = 150;
 
 // Currency handling - using paise (INR smallest unit) to avoid floating point errors
 const toPaise = (rupees) => Math.round(rupees * 100);
@@ -36,12 +38,18 @@ const verifyWebhookSignature = (payload, signature, secret) => {
   );
 };
 
-const calculatePricing = async (couponCode) => {
+const calculatePricing = async ({ couponCode, courseId, userId }) => {
+  const basePrice = getCoursePrice(courseId);
+  if (!basePrice) {
+    throw new Error("Invalid course selected for pricing.");
+  }
+
   // Use paise for precision
-  let originalAmountPaise = toPaise(PROGRAM_PRICE);
+  let originalAmountPaise = toPaise(basePrice);
   let discountAmountPaise = 0;
-  let finalAmountPaise = toPaise(PROGRAM_PRICE);
+  let finalAmountPaise = toPaise(basePrice);
   let appliedCoupon = null;
+  let referralData = null;
 
   if (couponCode) {
     const normalizedCode = couponCode.toUpperCase().trim();
@@ -85,6 +93,37 @@ const calculatePricing = async (couponCode) => {
 
       finalAmountPaise = Math.max(originalAmountPaise - discountAmountPaise, 0);
       appliedCoupon = coupon;
+    } else {
+      const referralOwner = await User.findOne({
+        referralCode: normalizedCode,
+      }).select("_id referralCode");
+
+      if (!referralOwner) {
+        throw new Error("Invalid coupon or referral code.");
+      }
+
+      if (referralOwner._id.toString() === userId.toString()) {
+        throw new Error("You cannot use your own referral code.");
+      }
+
+      const alreadyCompleted = await Referral.findOne({
+        referrerUserId: referralOwner._id,
+        referredUserId: userId,
+        status: "completed",
+      }).select("_id");
+
+      if (alreadyCompleted) {
+        throw new Error("Referral reward already used for this account.");
+      }
+
+      discountAmountPaise = Math.round(
+        (originalAmountPaise * REFERRAL_DISCOUNT_PERCENT) / 100
+      );
+      finalAmountPaise = Math.max(originalAmountPaise - discountAmountPaise, 0);
+      referralData = {
+        referrerUserId: referralOwner._id,
+        referralCode: referralOwner.referralCode,
+      };
     }
   }
 
@@ -93,6 +132,7 @@ const calculatePricing = async (couponCode) => {
     discountAmount: toRupees(discountAmountPaise),
     finalAmount: toRupees(finalAmountPaise),
     appliedCoupon,
+    referralData,
   };
 };
 
@@ -114,7 +154,7 @@ const createOrder = async (req, res) => {
     if (!courseId || !isValidCourseId(courseId)) {
       return res.status(400).json({
         success: false,
-        message: "Choose one of the six program tracks before paying.",
+        message: "Please choose a valid internship program before paying.",
       });
     }
 
@@ -136,21 +176,75 @@ const createOrder = async (req, res) => {
     }).sort({ createdAt: -1 });
 
     if (existingPayment) {
-      const cashfreeMode =
-        process.env.CASHFREE_ENV === "PRODUCTION" ? "production" : "sandbox";
+      try {
+        const existingOrder = await Cashfree.PGFetchOrder(
+          CASHFREE_API_VERSION,
+          existingPayment.orderId
+        );
+        const orderStatus = existingOrder?.data?.order_status;
+        const activeSessionId =
+          existingOrder?.data?.payment_session_id || existingPayment.paymentSessionId;
 
-      return res.json({
-        success: true,
-        message: "Existing payment order found",
-        paymentSessionId: existingPayment.paymentSessionId,
-        orderId: existingPayment.orderId,
-        cashfreeMode,
-        isExisting: true,
+        if (orderStatus === "PAID") {
+          await processPaymentSuccess(existingPayment, existingPayment.orderId);
+          return res.status(400).json({
+            success: false,
+            message:
+              "Payment is already completed for this track. Open dashboard to continue.",
+          });
+        }
+
+        if (orderStatus === "ACTIVE" && activeSessionId) {
+          const cashfreeMode =
+            process.env.CASHFREE_ENV === "PRODUCTION" ? "production" : "sandbox";
+
+          return res.json({
+            success: true,
+            message: "Existing payment order found",
+            paymentSessionId: activeSessionId,
+            orderId: existingPayment.orderId,
+            cashfreeMode,
+            isExisting: true,
+          });
+        }
+
+        await Payment.updateOne(
+          { _id: existingPayment._id },
+          { $set: { paymentStatus: "failed" } }
+        );
+      } catch (existingOrderError) {
+        console.error(
+          `Failed to validate existing order ${existingPayment.orderId}:`,
+          existingOrderError?.response?.data || existingOrderError.message
+        );
+        await Payment.updateOne(
+          { _id: existingPayment._id },
+          { $set: { paymentStatus: "failed" } }
+        );
+      }
+    }
+
+    let pricingResult;
+    try {
+      pricingResult = await calculatePricing({
+        couponCode,
+        courseId,
+        userId: user._id,
+      });
+    } catch (pricingError) {
+      return res.status(400).json({
+        success: false,
+        message: pricingError.message || "Invalid coupon/referral code.",
       });
     }
 
-    const { originalAmount, discountAmount, finalAmount, appliedCoupon } =
-      await calculatePricing(couponCode);
+    const {
+      originalAmount,
+      discountAmount,
+      finalAmount,
+      appliedCoupon,
+      referralData,
+    } = pricingResult;
 
     // Validate pricing - ensure amount is positive
     if (!finalAmount || finalAmount <= 0) {
@@ -210,10 +304,43 @@ const createOrder = async (req, res) => {
             finalAmount,
             discountAmount,
             couponCode: appliedCoupon ? appliedCoupon.code : "",
+            referrerUserId: referralData ? referralData.referrerUserId : null,
+            referralCodeApplied: referralData ? referralData.referralCode : "",
+            referralRewardStatus: referralData ? "pending" : "none",
             courseId,
             paymentStatus: "pending",
           },
         ],
+        { session }
+      );
+
+      if (referralData) {
+        await Referral.updateOne(
+          {
+            referrerUserId: referralData.referrerUserId,
+            referredUserId: user._id,
+          },
+          {
+            $set: {
+              referralCode: referralData.referralCode,
+              orderId,
+              rewardAmount: REFERRAL_REWARD_AMOUNT,
+              status: "pending",
+              completedAt: null,
+            },
+          },
+          { upsert: true, session }
+        );
+      }
+
+      await User.updateOne(
+        { _id: user._id },
+        {
+          $set: {
+            paymentStatus: "pending",
+            enrolledCourseId: courseId,
+          },
+        },
         { session }
       );
     });
@@ -291,72 +418,7 @@ const verifyPayment = async (req, res) => {
     const orderData = cashfreeResponse.data;
 
     if (orderData.order_status === "PAID") {
-      let transactionResult = false;
-
-      await session.withTransaction(async () => {
-        // Re-check status inside transaction to handle race conditions
-        const currentPayment = await Payment.findOne(
-          { orderId },
-          null,
-          { session, lock: { mode: "exclusive" } }
-        );
-
-        if (!currentPayment || currentPayment.paymentStatus === "success") {
-          transactionResult = true;
-          return;
-        }
-
-        // Update payment status
-        await Payment.updateOne(
-          { orderId },
-          {
-            $set: {
-              paymentStatus: "success",
-              paidAt: new Date(),
-            },
-          },
-          { session }
-        );
-
-        // Update user
-        await User.findByIdAndUpdate(
-          payment.userId,
-          {
-            paymentStatus: "paid",
-            enrolledCourseId: payment.courseId || "",
-          },
-          { session }
-        );
-
-        // Atomically increment coupon with usage limit check
-        if (payment.couponCode) {
-          const couponUpdate = await Coupon.findOneAndUpdate(
-            {
-              code: payment.couponCode,
-              $or: [
-                { usageLimit: 0 },
-                { usageLimit: { $exists: false } },
-                { $expr: { $lt: ["$usedCount", "$usageLimit"] } },
-              ],
-            },
-            { $inc: { usedCount: 1 } },
-            { session, new: true }
-          );
-
-          if (!couponUpdate) {
-            // Coupon limit exceeded - log warning but don't fail payment
-            console.warn(
-              `Coupon ${payment.couponCode} limit exceeded for order ${orderId}`
-            );
-          }
-        }
-
-        transactionResult = true;
-      });
-
-      if (!transactionResult) {
-        throw new Error("Transaction failed");
-      }
+      await processPaymentSuccess(payment, orderId);
 
       return res.json({
         success: true,
@@ -554,6 +616,51 @@ const processPaymentSuccess = async (payment, orderId) => {
             `Webhook: Coupon ${payment.couponCode} limit exceeded for order ${orderId}`
           );
         }
+      }
+
+      if (payment.referrerUserId && payment.referralRewardStatus === "pending") {
+        const existingCompletedReferral = await Referral.findOne({
+          referrerUserId: payment.referrerUserId,
+          referredUserId: payment.userId,
+          status: "completed",
+        }).session(session);
+
+        if (!existingCompletedReferral) {
+          await User.updateOne(
+            { _id: payment.referrerUserId },
+            {
+              $inc: {
+                walletBalance: REFERRAL_REWARD_AMOUNT,
+                totalReferralEarnings: REFERRAL_REWARD_AMOUNT,
+                totalReferrals: 1,
+              },
+            },
+            { session }
+          );
+        }
+
+        await Referral.updateOne(
+          {
+            referrerUserId: payment.referrerUserId,
+            referredUserId: payment.userId,
+          },
+          {
+            $set: {
+              referralCode: payment.referralCodeApplied,
+              orderId,
+              rewardAmount: REFERRAL_REWARD_AMOUNT,
+              status: "completed",
+              completedAt: new Date(),
+            },
+          },
+          { upsert: true, session }
+        );
+
+        await Payment.updateOne(
+          { orderId },
+          { $set: { referralRewardStatus: "completed" } },
+          { session }
+        );
       }
     });
 
