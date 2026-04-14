@@ -47,18 +47,25 @@ const calculatePricing = async (couponCode) => {
     const normalizedCode = couponCode.toUpperCase().trim();
 
     // Atomic check: validate coupon and check usage limit in one query
+    // Use $and to combine multiple $or conditions
     const coupon = await Coupon.findOne({
       code: normalizedCode,
       isActive: true,
-      $or: [
-        { expiresAt: { $exists: false } },
-        { expiresAt: null },
-        { expiresAt: { $gte: new Date() } },
-      ],
-      $or: [
-        { usageLimit: 0 },
-        { usageLimit: { $exists: false } },
-        { $expr: { $lt: ["$usedCount", "$usageLimit"] } },
+      $and: [
+        {
+          $or: [
+            { expiresAt: { $exists: false } },
+            { expiresAt: null },
+            { expiresAt: { $gte: new Date() } },
+          ],
+        },
+        {
+          $or: [
+            { usageLimit: 0 },
+            { usageLimit: { $exists: false } },
+            { $expr: { $lt: ["$usedCount", "$usageLimit"] } },
+          ],
+        },
       ],
     });
 
@@ -145,6 +152,14 @@ const createOrder = async (req, res) => {
     const { originalAmount, discountAmount, finalAmount, appliedCoupon } =
       await calculatePricing(couponCode);
 
+    // Validate pricing - ensure amount is positive
+    if (!finalAmount || finalAmount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid amount. The discount cannot exceed the original price.",
+      });
+    }
+
     // Check if user already paid for this course
     if (user.paymentStatus === "paid" && user.enrolledCourseId === courseId) {
       return res.status(400).json({
@@ -155,15 +170,23 @@ const createOrder = async (req, res) => {
 
     const orderId = `order_${Date.now()}_${user._id.toString().slice(-6)}`;
 
+    // Validate all required fields before sending to Cashfree
+    if (!user.fullName || !user.email || !user.phone) {
+      return res.status(400).json({
+        success: false,
+        message: "Profile incomplete. Name, email, and phone are required.",
+      });
+    }
+
     const request = {
       order_amount: finalAmount,
       order_currency: "INR",
       order_id: orderId,
       customer_details: {
         customer_id: user._id.toString(),
-        customer_name: user.fullName,
-        customer_email: user.email,
-        customer_phone: user.phone,
+        customer_name: user.fullName.trim(),
+        customer_email: user.email.trim(),
+        customer_phone: user.phone.trim(),
       },
       order_meta: {
         return_url: `${process.env.FRONTEND_URL}/dashboard?order_id={order_id}`,
@@ -171,8 +194,8 @@ const createOrder = async (req, res) => {
     };
 
     const cashfreeResponse = await Cashfree.PGCreateOrder(
-      request,
-      CASHFREE_API_VERSION
+      CASHFREE_API_VERSION,
+      request
     );
 
     await session.withTransaction(async () => {
@@ -207,12 +230,23 @@ const createOrder = async (req, res) => {
       isExisting: false,
     });
   } catch (error) {
-    console.error("Create Order Error:", error.response?.data || error.message);
+    console.error("Create Order Error Details:", {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      stack: error.stack,
+    });
+
+    // Return detailed error info to frontend for debugging
+    const errorDetail = error.response?.data?.message || 
+                      error.response?.data?.error || 
+                      error.message || 
+                      "Failed to create payment order";
 
     res.status(500).json({
       success: false,
-      message: "Failed to create payment order",
-      error: error.response?.data || error.message,
+      message: errorDetail,
+      error: error.response?.data || { message: error.message },
     });
   } finally {
     await session.endSession();
@@ -251,8 +285,8 @@ const verifyPayment = async (req, res) => {
     }
 
     const cashfreeResponse = await Cashfree.PGFetchOrder(
-      orderId,
-      CASHFREE_API_VERSION
+      CASHFREE_API_VERSION,
+      orderId
     );
     const orderData = cashfreeResponse.data;
 
